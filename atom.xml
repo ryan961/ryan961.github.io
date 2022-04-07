@@ -17,7 +17,7 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>使用 tableflip + systemd 实现 Go 应用热重启</title>
+    <title>tableflip + systemd 实现 Go 应用热重启</title>
     <link href="https://ryan961.github.io/2022/03/24/go-graceful-upgrades/"/>
     <id>https://ryan961.github.io/2022/03/24/go-graceful-upgrades/</id>
     <published>2022-03-24T00:00:00.000Z</published>
