@@ -549,7 +549,8 @@
 <li>容忍新进程初始化的失败（如果新进程初始化失败，老进程会继续工作而不是退出）</li>
 <li>同一时间只能有一个更新动作执行</li>
 </ul>
-<p><code>tableflip</code> 中的核心类型是 <code>Upgrader</code>，调用 <code>Upgrader.Upgrade</code> 会产生一个继承必要的 <code>net.Listeners</code><br>的新进程，并等待新进程发出表明其已成功完成初始化、退出或超时的信号。如果当前已有升级的任务在执行，则直接返回相应的错误。</p>
+<p><code>tableflip</code> 中的核心类型是 <code>Upgrader</code>，调用 <code>Upgrader.Upgrade</code> 会产生一个继承必要的 <code>net.Listeners</code>
+的新进程，并等待新进程发出表明其已成功完成初始化、退出或超时的信号。如果当前已有升级的任务在执行，则直接返回相应的错误。</p>
 <p>当新进程启动成功后，调用 <code>Upgrader.Ready</code> 会清除无效的 fd 并向父进程发出初始化成功完成的信号，然后父进程就可以安心退出。至此，我们就完成了一次优雅的进程重启。</p>
 <p><img src="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/go-graceful-upgrades/tableflip_upgrade.png" alt="tableflip upgrade"></p>
 <h2 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h2><p>源码地址：</p>
