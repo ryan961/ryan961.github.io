@@ -468,6 +468,64 @@
         
         
             
+        
+        <article class="index-post">
+            <a class="abstract-title" href="/2022/04/20/k8s-install/">
+                
+                <span class="abstract-title-text">Kubernetes 集群搭建</span>
+            </a>
+            <div class="abstract-content">
+                环境准备主机
+裸机安装至少需要两台机器（主节点、工作节点各一台)
+
+1234// System OS: Ubuntu 20.04.4 LTSk8s-01: ubuntu@172.16.20.33k8s-02: ubuntu@172.16.20.34k8s-03: ubuntu@172.16.20.35
+
+批量将本机的 pub key 复制到目标机器的 ~/.ssh/authorized_keys :
+copyKey
+12345678910111213141516171819#!/usr/bin/expect -fset ip [lindex $argv 0]set user [linde...
+            </div>
+            <!-- read more -->
+            
+            <div class="abstract-post-meta">
+                <!-- date -->
+                <div class="abstract-date" title="Last updated: 2022/04/20">
+                    <span class="abstract-calander iconfont-archer">&#xe676;</span><span class="abstract-time">2022/04/20</span>
+                </div>
+                <!-- tags -->
+                
+                    <div class= abstract-tags >
+    
+        
+        
+            
+        
+        
+        <span class="post-category" data-categories="kubenetes"">
+            <i class="fas fa-folder post-category-icon"></i>
+            <span class="post-category-text">
+                kubenetes
+            </span>
+        </span>
+    
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags="kubenetes">kubenetes</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags="ubuntu">ubuntu</a>
+    
+        <a class="post-tag" href="javascript:void(0);" data-tags="linux">linux</a>
+    
+</div>
+
+                
+            </div>
+        </article>
+        <div class="index-post-divider"></div>
+    
+        
+        
+        
+        
+            
             
         
         <article class="index-post">
@@ -787,7 +845,16 @@
         
         
         
+        
+        
+        
+        
+        
     
+        
+        
+        
+        
         
         
     
@@ -796,7 +863,7 @@
     
     <div class="total-and-search">
         <div class="total-archive">
-        Total : 2
+        Total : 3
         </div>
         <!-- search  -->
         
@@ -814,6 +881,12 @@
             <div class="archive-year"> 2022 </div>
             <ul class="year-list">
             
+        
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/20</span>
+            <a class="archive-post-title" href="/2022/04/20/k8s-install/">Kubernetes 集群搭建</a>
+        </li>
+    
         
         <li class="archive-post-item">
             <span class="archive-post-date">03/24</span>
@@ -847,6 +920,21 @@
                 systemd
             </span>
         
+            <span class="sidebar-tag-name" data-tags="kubenetes">
+                <span class="iconfont-archer">&#xe606;</span>
+                kubenetes
+            </span>
+        
+            <span class="sidebar-tag-name" data-tags="ubuntu">
+                <span class="iconfont-archer">&#xe606;</span>
+                ubuntu
+            </span>
+        
+            <span class="sidebar-tag-name" data-tags="linux">
+                <span class="iconfont-archer">&#xe606;</span>
+                linux
+            </span>
+        
             <span class="sidebar-tag-name" data-tags="mac">
                 <span class="iconfont-archer">&#xe606;</span>
                 mac
@@ -871,6 +959,11 @@
         <span class="sidebar-category-name" data-categories="golang">
             <span class="iconfont-archer">&#xe60a;</span>
             golang
+        </span>
+    
+        <span class="sidebar-category-name" data-categories="kubenetes">
+            <span class="iconfont-archer">&#xe60a;</span>
+            kubenetes
         </span>
     
         <span class="sidebar-category-name" data-categories="mac tools">

@@ -553,7 +553,7 @@
 的新进程，并等待新进程发出表明其已成功完成初始化、退出或超时的信号。如果当前已有升级的任务在执行，则直接返回相应的错误。</p>
 <p>当新进程启动成功后，调用 <code>Upgrader.Ready</code> 会清除无效的 fd 并向父进程发出初始化成功完成的信号，然后父进程就可以安心退出。至此，我们就完成了一次优雅的进程重启。</p>
 <p><img src="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/go-graceful-upgrades/tableflip_upgrade.png" alt="tableflip upgrade"></p>
-<h2 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h2><p>源码地址：</p>
+<h2 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h2><p>源码地址：<a target="_blank" rel="noopener" href="https://github.com/ryan961/go-exp/blob/main/reload/main.go">https://github.com/ryan961/go-exp/blob/main/reload/main.go</a></p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	upg, err := tableflip.New(tableflip.Options&#123;PIDFile: <span class="string">&quot;./reload.pid&quot;</span>&#125;)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> upg.Stop()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 为了演示方便，为程序启动强行加入 1s 的延时，并在日志中附上进程 pid</span></span><br><span class="line">	time.Sleep(time.Second)</span><br><span class="line">	log.SetPrefix(fmt.Sprintf(<span class="string">&quot;[PID: %d] &quot;</span>, os.Getpid()))</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 监听系统的 SIGHUP 信号，以此信号触发进程重启</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		sig := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">		signal.Notify(sig, syscall.SIGHUP, syscall.SIGUSR2, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)</span><br><span class="line">		<span class="keyword">for</span> si := <span class="keyword">range</span> sig &#123;</span><br><span class="line">			<span class="keyword">switch</span> si &#123;</span><br><span class="line">			<span class="keyword">case</span> syscall.SIGHUP, syscall.SIGUSR2:</span><br><span class="line">				<span class="comment">// 核心的 Upgrade 调用</span></span><br><span class="line">				<span class="keyword">if</span> err := upg.Upgrade(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Println(<span class="string">&quot;server upgrade failed:&quot;</span>, err)</span><br><span class="line">				&#125;</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				log.Println(<span class="string">&quot;shutdown server start:&quot;</span>, si)</span><br><span class="line">				upg.Stop()</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 注意必须使用 upg.Listen 对端口进行监听</span></span><br><span class="line">	ln, err := upg.Listen(<span class="string">&quot;tcp&quot;</span>, fmt.Sprintf(<span class="string">&quot;:%d&quot;</span>, endPoint))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalln(<span class="string">&quot;Can&#x27;t listen:&quot;</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建一个简单的 http server，/version 返回当前的程序版本</span></span><br><span class="line">	mux := http.NewServeMux()</span><br><span class="line">	mux.HandleFunc(<span class="string">&quot;/version&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(rw http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">		log.Println(Version)</span><br><span class="line">		rw.Write([]<span class="type">byte</span>(Version + <span class="string">&quot;\n&quot;</span>))</span><br><span class="line">	&#125;)</span><br><span class="line">	server := http.Server&#123;</span><br><span class="line">		Handler: mux,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 照常启动 http server</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		err := server.Serve(ln)</span><br><span class="line">		<span class="keyword">if</span> err != http.ErrServerClosed &#123;</span><br><span class="line">			log.Println(<span class="string">&quot;HTTP server:&quot;</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := upg.Ready(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	log.Printf(<span class="string">&quot;http server listening %d&quot;</span>, endPoint)</span><br><span class="line"></span><br><span class="line">	&lt;-upg.Exit()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 给老进程的退出设置一个 30s 的超时时间，保证老进程的退出</span></span><br><span class="line">	time.AfterFunc(<span class="number">30</span>*time.Second, <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		log.Println(<span class="string">&quot;Graceful shutdown timed out&quot;</span>)</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 等待 http server 的优雅退出上面的代码实现了一个返回当前 version 的 http server，我们在启动过程中延迟 1s 以便观察升级过程中服务是否依旧可用。</span></span><br><span class="line">	server.Shutdown(context.Background())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>编译运行：</p>
@@ -609,6 +609,11 @@
     <!-- paginator -->
     <ul class="post-paginator">
         <li class="next">
+            
+                <div class="nextSlogan">Next Post</div>
+                <a href="/2022/04/20/k8s-install/" title="Kubernetes 集群搭建">
+                    <div class="nextTitle">Kubernetes 集群搭建</div>
+                </a>
             
         </li>
         <li class="previous">
@@ -805,7 +810,16 @@
         
         
         
+        
+        
+        
+        
+        
     
+        
+        
+        
+        
         
         
     
@@ -814,7 +828,7 @@
     
     <div class="total-and-search">
         <div class="total-archive">
-        Total : 2
+        Total : 3
         </div>
         <!-- search  -->
         
@@ -832,6 +846,12 @@
             <div class="archive-year"> 2022 </div>
             <ul class="year-list">
             
+        
+        <li class="archive-post-item">
+            <span class="archive-post-date">04/20</span>
+            <a class="archive-post-title" href="/2022/04/20/k8s-install/">Kubernetes 集群搭建</a>
+        </li>
+    
         
         <li class="archive-post-item">
             <span class="archive-post-date">03/24</span>
@@ -865,6 +885,21 @@
                 systemd
             </span>
         
+            <span class="sidebar-tag-name" data-tags="kubenetes">
+                <span class="iconfont-archer">&#xe606;</span>
+                kubenetes
+            </span>
+        
+            <span class="sidebar-tag-name" data-tags="ubuntu">
+                <span class="iconfont-archer">&#xe606;</span>
+                ubuntu
+            </span>
+        
+            <span class="sidebar-tag-name" data-tags="linux">
+                <span class="iconfont-archer">&#xe606;</span>
+                linux
+            </span>
+        
             <span class="sidebar-tag-name" data-tags="mac">
                 <span class="iconfont-archer">&#xe606;</span>
                 mac
@@ -889,6 +924,11 @@
         <span class="sidebar-category-name" data-categories="golang">
             <span class="iconfont-archer">&#xe60a;</span>
             golang
+        </span>
+    
+        <span class="sidebar-category-name" data-categories="kubenetes">
+            <span class="iconfont-archer">&#xe60a;</span>
+            kubenetes
         </span>
     
         <span class="sidebar-category-name" data-categories="mac tools">
