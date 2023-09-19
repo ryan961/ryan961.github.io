@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="rgba(0,0,0,0)"><meta name="generator" content="Hexo 6.3.0">
+<link rel="preconnect" href="//fonts.loli.net" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="rgba(0,0,0,0)">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Roboto+Slab:300,300italic,400,400italic,700,700italic%7CInconsolata:300,300italic,400,400italic,700,700italic%7CInconsolata-dz+for+Powerline:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ryan961.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.18.1","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="对于一个常驻、高访问量的网络服务来说，在进行代码变更需要对进程进行升级&#x2F;重启时，如何避免对正在通信的用户以及即将访问的用户造成影响便是一个难以忽视的问题，尤其是在用户量达到一定规模的时候。 本文将使用 tableflip并结合 systemd 实现 Go 应用优雅的热重启。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tableflip + systemd 实现 Go 应用热重启">
+<meta property="og:url" content="https://ryan961.github.io/2022/03/23/go-graceful-upgrades/index.html">
+<meta property="og:site_name" content="Ryan961&#39;s Studio">
+<meta property="og:description" content="对于一个常驻、高访问量的网络服务来说，在进行代码变更需要对进程进行升级&#x2F;重启时，如何避免对正在通信的用户以及即将访问的用户造成影响便是一个难以忽视的问题，尤其是在用户量达到一定规模的时候。 本文将使用 tableflip并结合 systemd 实现 Go 应用优雅的热重启。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/go-graceful-upgrades/tableflip_upgrade.png">
+<meta property="article:published_time" content="2022-03-23T16:00:00.000Z">
+<meta property="article:modified_time" content="2022-03-23T16:00:00.000Z">
+<meta property="article:author" content="Ryan961">
+<meta property="article:tag" content="golang">
+<meta property="article:tag" content="reload">
+<meta property="article:tag" content="systemd">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/go-graceful-upgrades/tableflip_upgrade.png">
+
+
+<link rel="canonical" href="https://ryan961.github.io/2022/03/23/go-graceful-upgrades/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryan961.github.io/2022/03/23/go-graceful-upgrades/","path":"2022/03/23/go-graceful-upgrades/","title":"tableflip + systemd 实现 Go 应用热重启"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>tableflip + systemd 实现 Go 应用热重启 | Ryan961's Studio</title>
+  
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-221007963-1","only_pageview":true}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Ryan961's Studio</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#tableflip-%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">tableflip 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.</span> <span class="nav-text">代码示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#systemd-%E7%AE%A1%E7%90%86%E8%BF%9B%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">systemd 管理进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A4%E6%96%AD-reload-%E6%98%AF%E5%90%A6%E6%88%90%E5%8A%9F"><span class="nav-number">4.</span> <span class="nav-text">判断 reload 是否成功</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">6.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ryan961"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Ryan961</p>
+  <div class="site-description" itemprop="description">A blog about technology and stuff related</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryan961" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryan961" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/ryan961azy@gmail.com" title="E-Mail → ryan961azy@gmail.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ryan961101" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ryan961101" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="fa-solid fa-square-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ryan961.github.io/2022/03/23/go-graceful-upgrades/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Ryan961">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ryan961's Studio">
+      <meta itemprop="description" content="A blog about technology and stuff related">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="tableflip + systemd 实现 Go 应用热重启 | Ryan961's Studio">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          tableflip + systemd 实现 Go 应用热重启
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-03-24 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-24T00:00:00+08:00">2022-03-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/golang/" itemprop="url" rel="index"><span itemprop="name">golang</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>7 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>对于一个常驻、高访问量的网络服务来说，在进行代码变更需要对进程进行升级&#x2F;重启时，如何避免对正在通信的用户以及即将访问的用户造成影响便是一个难以忽视的问题，尤其是在用户量达到一定规模的时候。</p>
+<p>本文将使用 <a target="_blank" rel="noopener" href="https://github.com/cloudflare/tableflip">tableflip</a>并结合 <a target="_blank" rel="noopener" href="https://github.com/cloudflare/tableflip#integration-with-systemd">systemd</a> 实现 Go 应用优雅的热重启。</p>
+<span id="more"></span>
+
+<h2 id="tableflip-简介"><a href="#tableflip-简介" class="headerlink" title="tableflip 简介"></a>tableflip 简介</h2><p><a target="_blank" rel="noopener" href="https://github.com/cloudflare/tableflip">tableflip</a> 是 <a target="_blank" rel="noopener" href="https://www.cloudflare.com/zh-cn/">cloudflare</a> 实现 Go 进程优雅重启的一个开源库，采用 <code>继承监听套接字</code> 方案，整体设计开放性足够，目前看起来是最好的一个实现。</p>
+<p><code>tableflip</code> 的设计宗旨就是实现类似 nginx 的优雅热更新能力，包括：</p>
+<ul>
+<li>新进程启动成功后，老进程不会有资源残留</li>
+<li>优雅的新进程初始化（新进程启动和初始化的过程中服务不会中断）</li>
+<li>容忍新进程初始化的失败（如果新进程初始化失败，老进程会继续工作而不是退出）</li>
+<li>同一时间只能有一个更新动作执行</li>
+</ul>
+<p><code>tableflip</code> 中的核心类型是 <code>Upgrader</code>，调用 <code>Upgrader.Upgrade</code> 会产生一个继承必要的 <code>net.Listeners</code><br>的新进程，并等待新进程发出表明其已成功完成初始化、退出或超时的信号。如果当前已有升级的任务在执行，则直接返回相应的错误。</p>
+<p>当新进程启动成功后，调用 <code>Upgrader.Ready</code> 会清除无效的 fd 并向父进程发出初始化成功完成的信号，然后父进程就可以安心退出。至此，我们就完成了一次优雅的进程重启。</p>
+<p><img data-src="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/go-graceful-upgrades/tableflip_upgrade.png" alt="tableflip upgrade"></p>
+<h2 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h2><p>源码地址：<a target="_blank" rel="noopener" href="https://github.com/ryan961/go-exp/blob/main/reload/main.go">https://github.com/ryan961/go-exp/blob/main/reload/main.go</a></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	upg, err := tableflip.New(tableflip.Options&#123;PIDFile: <span class="string">&quot;./reload.pid&quot;</span>&#125;)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">defer</span> upg.Stop()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 为了演示方便，为程序启动强行加入 1s 的延时，并在日志中附上进程 pid</span></span><br><span class="line">	time.Sleep(time.Second)</span><br><span class="line">	log.SetPrefix(fmt.Sprintf(<span class="string">&quot;[PID: %d] &quot;</span>, os.Getpid()))</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 监听系统的 SIGHUP 信号，以此信号触发进程重启</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		sig := <span class="built_in">make</span>(<span class="keyword">chan</span> os.Signal, <span class="number">1</span>)</span><br><span class="line">		signal.Notify(sig, syscall.SIGHUP, syscall.SIGUSR2, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)</span><br><span class="line">		<span class="keyword">for</span> si := <span class="keyword">range</span> sig &#123;</span><br><span class="line">			<span class="keyword">switch</span> si &#123;</span><br><span class="line">			<span class="keyword">case</span> syscall.SIGHUP, syscall.SIGUSR2:</span><br><span class="line">				<span class="comment">// 核心的 Upgrade 调用</span></span><br><span class="line">				<span class="keyword">if</span> err := upg.Upgrade(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">					log.Println(<span class="string">&quot;server upgrade failed:&quot;</span>, err)</span><br><span class="line">				&#125;</span><br><span class="line">			<span class="keyword">default</span>:</span><br><span class="line">				log.Println(<span class="string">&quot;shutdown server start:&quot;</span>, si)</span><br><span class="line">				upg.Stop()</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 注意必须使用 upg.Listen 对端口进行监听</span></span><br><span class="line">	ln, err := upg.Listen(<span class="string">&quot;tcp&quot;</span>, fmt.Sprintf(<span class="string">&quot;:%d&quot;</span>, endPoint))</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		log.Fatalln(<span class="string">&quot;Can&#x27;t listen:&quot;</span>, err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建一个简单的 http server，/version 返回当前的程序版本</span></span><br><span class="line">	mux := http.NewServeMux()</span><br><span class="line">	mux.HandleFunc(<span class="string">&quot;/version&quot;</span>, <span class="function"><span class="keyword">func</span><span class="params">(rw http.ResponseWriter, r *http.Request)</span></span> &#123;</span><br><span class="line">		log.Println(Version)</span><br><span class="line">		rw.Write([]<span class="type">byte</span>(Version + <span class="string">&quot;\n&quot;</span>))</span><br><span class="line">	&#125;)</span><br><span class="line">	server := http.Server&#123;</span><br><span class="line">		Handler: mux,</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 照常启动 http server</span></span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		err := server.Serve(ln)</span><br><span class="line">		<span class="keyword">if</span> err != http.ErrServerClosed &#123;</span><br><span class="line">			log.Println(<span class="string">&quot;HTTP server:&quot;</span>, err)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;()</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> err := upg.Ready(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(err)</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	log.Printf(<span class="string">&quot;http server listening %d&quot;</span>, endPoint)</span><br><span class="line"></span><br><span class="line">	&lt;-upg.Exit()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 给老进程的退出设置一个 30s 的超时时间，保证老进程的退出</span></span><br><span class="line">	time.AfterFunc(<span class="number">30</span>*time.Second, <span class="function"><span class="keyword">func</span><span class="params">()</span></span> &#123;</span><br><span class="line">		log.Println(<span class="string">&quot;Graceful shutdown timed out&quot;</span>)</span><br><span class="line">		os.Exit(<span class="number">1</span>)</span><br><span class="line">	&#125;)</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 等待 http server 的优雅退出上面的代码实现了一个返回当前 version 的 http server，我们在启动过程中延迟 1s 以便观察升级过程中服务是否依旧可用。</span></span><br><span class="line">	server.Shutdown(context.Background())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译运行：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">go build -ldflags &quot;-X main.Version=0.0.1&quot; -o reload</span><br><span class="line">./reload</span><br></pre></td></tr></table></figure>
+
+<p>使用 curl 模拟一些客户端请求（10 qps）：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">while true; do curl http://localhost:8080/version; sleep 0.1; done</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[PID: 3399216] 2022/03/23 22:21:31 http server listening 8080</span><br><span class="line">[PID: 3399216] 2022/03/23 22:23:48 0.0.1</span><br><span class="line">[PID: 3399216] 2022/03/23 22:23:48 0.0.1</span><br><span class="line">[PID: 3399216] 2022/03/23 22:23:48 0.0.1</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>然后，我们对应用进行了一些升级，将版本号修改为 0.0.2，并重新编译程序：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go build -ldflags &quot;-X main.Version=0.0.2&quot; -o reload</span><br></pre></td></tr></table></figure>
+
+<p>最后，尝试优雅的热重启：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kill -HUP 3399216</span><br></pre></td></tr></table></figure>
+
+<p>由此可见，客户端没有受到服务器端 reload 的影响。至此，进程优雅的热更新已完成。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">[PID: 3399216] 2022/03/23 22:23:48 0.0.1</span><br><span class="line">[PID: 3399216] 2022/03/23 22:23:48 0.0.1</span><br><span class="line">[PID: 3401398] 2022/03/23 22:23:48 http server listening 8080</span><br><span class="line"><span class="meta prompt_">~/reload# </span><span class="language-bash">[PID: 3401398] 2022/03/23 22:23:48 0.0.2</span></span><br><span class="line">[PID: 3401398] 2022/03/23 22:23:48 0.0.2</span><br><span class="line">[PID: 3401398] 2022/03/23 22:23:48 0.0.2</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="systemd-管理进程"><a href="#systemd-管理进程" class="headerlink" title="systemd 管理进程"></a>systemd 管理进程</h2><p>reload_go.service:</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Service using tableflip</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">WorkingDirectory</span>=/root/reload</span><br><span class="line"><span class="attr">ExecStart</span>=/root/reload/reload</span><br><span class="line"><span class="attr">ExecStop</span>=/bin/kill -TERM <span class="variable">$MAINPID</span></span><br><span class="line"><span class="attr">ExecReload</span>=/bin/kill -HUP <span class="variable">$MAINPID</span></span><br><span class="line"><span class="attr">PIDFile</span>=/root/reload/reload.pid</span><br><span class="line"><span class="attr">Type</span>=simple</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>systemd</code> 管理进程：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">root@:# systemctl start reload_go.service</span><br><span class="line">root@:# systemctl status reload_go.service</span><br><span class="line">● reload_go.service - Service using tableflip</span><br><span class="line">     Loaded: loaded (/etc/systemd/system/reload_go.service; static; vendor preset: enabled)</span><br><span class="line">     Active: active (running) since Thu 2022-03-24 21:04:07 CST; 6s ago</span><br><span class="line">   Main PID: 3929535 (reload)</span><br><span class="line">      Tasks: 7 (limit: 4619)</span><br><span class="line">     Memory: 1.4M</span><br><span class="line">     CGroup: /system.slice/reload_go.service</span><br><span class="line">             └─3929535 /root/reload/reload</span><br><span class="line"></span><br><span class="line">Mar 24 21:04:07 systemd[1]: Started Service using tableflip.</span><br><span class="line">Mar 24 21:04:08 reload[3929535]: [PID: 3929535] 2022-03-24 21:04:08 http server listening 8080</span><br><span class="line">root@:# systemctl reload reload_go.service</span><br><span class="line">root@:# systemctl status reload_go.service</span><br><span class="line">● reload_go.service - Service using tableflip</span><br><span class="line">     Loaded: loaded (/etc/systemd/system/reload_go.service; static; vendor preset: enabled)</span><br><span class="line">     Active: active (running) since Thu 2022-03-24 21:04:07 CST; 17s ago</span><br><span class="line">    Process: 3929585 ExecReload=/bin/kill -HUP $MAINPID (code=exited, status=0/SUCCESS)</span><br><span class="line">   Main PID: 3929588 (reload)</span><br><span class="line">      Tasks: 10 (limit: 4619)</span><br><span class="line">     Memory: 1.8M</span><br><span class="line">     CGroup: /system.slice/reload_go.service</span><br><span class="line">             └─3929588 /root/reload/reload</span><br><span class="line"></span><br><span class="line">Mar 24 21:04:07 systemd[1]: Started Service using tableflip.</span><br><span class="line">Mar 24 21:04:08 reload[3929535]: [PID: 3929535] 2022/03/24 21:04:08 http server listening 8080</span><br><span class="line">Mar 24 21:04:23 systemd[1]: Reloading Service using tableflip.</span><br><span class="line">Mar 24 21:04:23 systemd[1]: Reloaded Service using tableflip.</span><br><span class="line">Mar 24 21:04:24 reload[3929588]: [PID: 3929588] 2022/03/24 21:04:24 http server listening 8080</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>至此，我们已基本完成使用 <code>systemd</code> 管理进程。</p>
+<h2 id="判断-reload-是否成功"><a href="#判断-reload-是否成功" class="headerlink" title="判断 reload 是否成功"></a>判断 reload 是否成功</h2><p>根据前面的流程，我们已基本完成 reload + systemd 的需求。但实际在发布过程中，<code>reload</code> 成功与否 <code>systemd</code> 无法感知，必须人工介入查看进程状态才能获知。而判断 <code>reload</code> 成功与否的标志便是进程 <code>pid</code> 是否发生变化，所以我们加入 <code>reload.sh</code> 来判断 <code>pid</code> 是否变化：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line">OLD_PID=$(cat $1)</span><br><span class="line">/bin/kill -HUP $OLD_PID</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">等待进程 reload 成功</span></span><br><span class="line">sleep 10</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">检查是否启动成功</span></span><br><span class="line">NEW_PID=$(cat $1)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">旧进程退出, 新进程启动</span></span><br><span class="line">ps --pid $OLD_PID &amp;&gt;/dev/null</span><br><span class="line">OLD_EXIST=$?</span><br><span class="line">ps --pid $NEW_PID &amp;&gt;/dev/null</span><br><span class="line">NEW_EXIST=$?</span><br><span class="line"></span><br><span class="line">if [ $OLD_EXIST -eq 1 ] &amp;&amp; [ $NEW_EXIST -eq 0 ]; then</span><br><span class="line">  exit 0</span><br><span class="line">else</span><br><span class="line">  exit -1</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<p>更新 <code>reload_go.service</code> :</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=Service using tableflip</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">WorkingDirectory</span>=/root/reload</span><br><span class="line"><span class="attr">ExecStart</span>=/root/reload/reload</span><br><span class="line"><span class="attr">ExecStop</span>=/bin/kill -TERM <span class="variable">$MAINPID</span></span><br><span class="line"><span class="attr">ExecReload</span>=/root/reload/reload.sh /root/reload/reload.pid</span><br><span class="line"><span class="attr">PIDFile</span>=/root/reload/reload.pid</span><br><span class="line"><span class="attr">Type</span>=simple</span><br></pre></td></tr></table></figure>
+
+<p>模拟进程 <code>reload</code> 失败：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">root@:# systemctl start reload_go.service</span><br><span class="line">root@:# systemctl status reload_go.service</span><br><span class="line">● reload_go.service - Service using tableflip</span><br><span class="line">     Loaded: loaded (/etc/systemd/system/reload_go.service; static; vendor preset: enabled)</span><br><span class="line">     Active: active (running) since Thu 2022-03-24 21:43:15 CST; 2s ago</span><br><span class="line">   Main PID: 3935728 (reload)</span><br><span class="line">      Tasks: 7 (limit: 4619)</span><br><span class="line">     Memory: 1.3M</span><br><span class="line">     CGroup: /system.slice/reload_go.service</span><br><span class="line">             └─3935728 /root/reload/reload</span><br><span class="line"></span><br><span class="line">Mar 24 21:43:15 systemd[1]: Started Service using tableflip.</span><br><span class="line">Mar 24 21:43:16 reload[3935728]: [PID: 3935728] 2022/03/24 21:43:16 http server listening 8080</span><br><span class="line">root@:# systemctl reload reload_go.service</span><br><span class="line">root@:# systemctl status reload_go.service</span><br><span class="line">● reload_go.service - Service using tableflip</span><br><span class="line">     Loaded: loaded (/etc/systemd/system/reload_go.service; static; vendor preset: enabled)</span><br><span class="line">     Active: active (running) since Thu 2022-03-24 21:43:15 CST; 28s ago</span><br><span class="line">    Process: 3935781 ExecReload=/root/reload/reload.sh /root/reload/reload.pid (code=exited, status=0/SUCCESS)</span><br><span class="line">   Main PID: 3935789 (reload)</span><br><span class="line">      Tasks: 7 (limit: 4619)</span><br><span class="line">     Memory: 2.0M</span><br><span class="line">     CGroup: /system.slice/reload_go.service</span><br><span class="line">             └─3935789 /root/reload/reload</span><br><span class="line"></span><br><span class="line">Mar 24 21:43:15 systemd[1]: Started Service using tableflip.</span><br><span class="line">Mar 24 21:43:16 reload[3935728]: [PID: 3935728] 2022/03/24 21:43:16 http server listening 8080</span><br><span class="line">Mar 24 21:43:30 systemd[1]: Reloading Service using tableflip.</span><br><span class="line">Mar 24 21:43:31 reload[3935789]: [PID: 3935789] 2022/03/24 21:43:31 http server listening 8080</span><br><span class="line">Mar 24 21:43:40 systemd[1]: Reloaded Service using tableflip.</span><br><span class="line">root@:/etc/systemd/system# systemctl reload reload_go.service</span><br><span class="line">Job for reload_go.service failed.</span><br><span class="line">See &quot;systemctl status reload_go.service&quot; and &quot;journalctl -xe&quot; for details.</span><br><span class="line">root@:# systemctl status reload_go.service</span><br><span class="line">● reload_go.service - Service using tableflip</span><br><span class="line">     Loaded: loaded (/etc/systemd/system/reload_go.service; static; vendor preset: enabled)</span><br><span class="line">     Active: active (running) since Thu 2022-03-24 21:43:15 CST; 1min 43s ago</span><br><span class="line">    Process: 3936335 ExecReload=/root/reload/reload.sh /root/reload/reload.pid (code=exited, status=255/EXCEPTION)</span><br><span class="line">   Main PID: 3935789 (reload)</span><br><span class="line">      Tasks: 7 (limit: 4619)</span><br><span class="line">     Memory: 2.2M</span><br><span class="line">     CGroup: /system.slice/reload_go.service</span><br><span class="line">             └─3935789 /root/reload/reload</span><br><span class="line"></span><br><span class="line">Mar 24 21:43:31 reload[3935789]: [PID: 3935789] 2022/03/24 21:43:31 http server listening 8080</span><br><span class="line">Mar 24 21:43:40 systemd[1]: Reloaded Service using tableflip.</span><br><span class="line">Mar 24 21:44:39 systemd[1]: Reloading Service using tableflip.</span><br><span class="line">Mar 24 21:44:39 reload[3936338]: panic: reload.sh</span><br><span class="line">Mar 24 21:44:39 reload[3936338]: goroutine 1 [running]:</span><br><span class="line">Mar 24 21:44:39 reload[3936338]: main.main()</span><br><span class="line">Mar 24 21:44:39 reload[3936338]:         /root/reload/main.go:23 +0x3e</span><br><span class="line">Mar 24 21:44:39 reload[3935789]: [PID: 3935789] 2022/03/24 21:44:39 server upgrade failed: child pid=3936338 exited: ex&gt;</span><br><span class="line">Mar 24 21:44:49 systemd[1]: reload_go.service: Control process exited, code=exited, status=255/EXCEPTION</span><br><span class="line">Mar 24 21:44:49 systemd[1]: Reload failed for Service using tableflip.</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>根据上述流程，我们已完成使用 <code>systemd</code> + <code>tableflip</code> 优雅重启进程的需求，并基本可以投入生产环境中使用。有需要也可以自行接入 <code>spug</code> 发布流程中。</p>
+<p>源码地址：<a target="_blank" rel="noopener" href="https://github.com/ryan961/go-exp/tree/main/reload">https://github.com/ryan961/go-exp/tree/main/reload</a></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/cloudflare/tableflip">https://github.com/cloudflare/tableflip</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.cloudflare.com/graceful-upgrades-in-go/">https://blog.cloudflare.com/graceful-upgrades-in-go/</a></li>
+<li><a target="_blank" rel="noopener" href="https://gocn.vip/topics/qoYMdnTxo4">https://gocn.vip/topics/qoYMdnTxo4</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/golang/" rel="tag"># golang</a>
+              <a href="/tags/reload/" rel="tag"># reload</a>
+              <a href="/tags/systemd/" rel="tag"># systemd</a>
+          </div>
+
+        
+  <div class="social-like a2a_kit a2a_kit_size_32 a2a_default_style">
+    <a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a>
+      <a class="a2a_button_facebook"></a>
+      <a class="a2a_button_twitter"></a>
+  </div>
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/03/19/my-mac-tools/" rel="prev" title="我的 macOS 软件清单">
+                  <i class="fa fa-angle-left"></i> 我的 macOS 软件清单
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/04/19/k8s-install/" rel="next" title="Kubernetes 集群搭建">
+                  Kubernetes 集群搭建 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan961</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">5k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">19 分钟</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lozad@1.16.0/dist/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.1/dist/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  <script src="/js/third-party/addtoany.js"></script>
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryan961","repo":"ryan961.github.io","client_id":"eda4b28f7b8d4b571106","client_secret":"06f2ba43c600d562fa10d00fd692ab4def6b2537","admin_user":["ryan961"],"distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"ca0e2de99d409f5d483cee09a33def44"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

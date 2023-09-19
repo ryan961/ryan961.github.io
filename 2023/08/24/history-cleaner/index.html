@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="rgba(0,0,0,0)"><meta name="generator" content="Hexo 6.3.0">
+<link rel="preconnect" href="//fonts.loli.net" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="rgba(0,0,0,0)">
+  <link rel="manifest" href="/images/manifest.json">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Roboto+Slab:300,300italic,400,400italic,700,700italic%7CInconsolata:300,300italic,400,400italic,700,700italic%7CInconsolata-dz+for+Powerline:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ryan961.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.18.1","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":true,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"tabs","active":"gitalk","storage":true,"lazyload":false,"nav":null,"activeClass":"gitalk"},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="history_cleaner.sh https:&#x2F;&#x2F;gist.github.com&#x2F;ryan961&#x2F;2baff64d162a946158405bb59bde1358  1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A bash script to delete specific lines from $HISTFILE file">
+<meta property="og:url" content="https://ryan961.github.io/2023/08/24/history-cleaner/index.html">
+<meta property="og:site_name" content="Ryan961&#39;s Studio">
+<meta property="og:description" content="history_cleaner.sh https:&#x2F;&#x2F;gist.github.com&#x2F;ryan961&#x2F;2baff64d162a946158405bb59bde1358  1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859606162">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-08-24T16:00:00.000Z">
+<meta property="article:modified_time" content="2023-08-24T16:00:00.000Z">
+<meta property="article:author" content="Ryan961">
+<meta property="article:tag" content="shell">
+<meta property="article:tag" content="linux">
+<meta property="article:tag" content="mac">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://ryan961.github.io/2023/08/24/history-cleaner/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryan961.github.io/2023/08/24/history-cleaner/","path":"2023/08/24/history-cleaner/","title":"A bash script to delete specific lines from $HISTFILE file"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>A bash script to delete specific lines from $HISTFILE file | Ryan961's Studio</title>
+  
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-221007963-1","only_pageview":true}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Ryan961's Studio</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#history-cleaner-sh"><span class="nav-number">1.</span> <span class="nav-text">history_cleaner.sh</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ryan961"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">Ryan961</p>
+  <div class="site-description" itemprop="description">A blog about technology and stuff related</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ryan961" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ryan961" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/ryan961azy@gmail.com" title="E-Mail → ryan961azy@gmail.com" rel="noopener me"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ryan961101" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ryan961101" rel="noopener me" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="fa-solid fa-square-rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ryan961.github.io/2023/08/24/history-cleaner/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="Ryan961">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ryan961's Studio">
+      <meta itemprop="description" content="A blog about technology and stuff related">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="A bash script to delete specific lines from $HISTFILE file | Ryan961's Studio">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          A bash script to delete specific lines from $HISTFILE file
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-08-25 00:00:00" itemprop="dateCreated datePublished" datetime="2023-08-25T00:00:00+08:00">2023-08-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/shell/" itemprop="url" rel="index"><span itemprop="name">shell</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>692</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="history-cleaner-sh"><a href="#history-cleaner-sh" class="headerlink" title="history_cleaner.sh"></a>history_cleaner.sh</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="https://gist.github.com/ryan961/2baff64d162a946158405bb59bde1358">https://gist.github.com/ryan961/2baff64d162a946158405bb59bde1358</a></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">HISTFILE=<span class="variable">$&#123;HISTFILE:-&quot;$HOME/.zsh_history&quot;&#125;</span></span><br><span class="line"></span><br><span class="line">verbose=<span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="title">print_usage</span></span>() &#123;</span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;Usage: <span class="variable">$0</span> [-f HISTFILE] [-n line1,line2,...] [-o offset] [-r regexp] [-e num] [-v]&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;NOTE: -n, -r and -e options cannot be used together.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;Delete specific lines from .zsh_history file.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;  -f HISTFILE          Specify history file. Default is <span class="variable">$HISTFILE</span>.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;  -n line1,line2,...   Delete specified lines. Line number starts from 1.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;  -o offset            Delete lines before(-) or after(+) lines specified by -n.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;  -r regexp            Delete lines match regexp pattern.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;  -e num               Delete last num lines.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;  -v                   Verbose output.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;  -h                   Print this help.&quot;</span></span><br><span class="line">  <span class="built_in">echo</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Parse flag</span></span><br><span class="line"><span class="keyword">while</span> <span class="built_in">getopts</span> <span class="string">&quot;:f:n:o:r:e:vh&quot;</span> opt; <span class="keyword">do</span></span><br><span class="line">  <span class="keyword">case</span> <span class="variable">$opt</span> <span class="keyword">in</span></span><br><span class="line">  f) HISTFILE=<span class="variable">$OPTARG</span> ;;</span><br><span class="line">  n) lines_string=<span class="variable">$OPTARG</span> ;;</span><br><span class="line">  o) offset=<span class="variable">$OPTARG</span> ;;</span><br><span class="line">  r) regexp=<span class="variable">$OPTARG</span> ;;</span><br><span class="line">  e) last_lines=<span class="variable">$OPTARG</span> ;;</span><br><span class="line">  v) verbose=<span class="literal">true</span> ;;</span><br><span class="line">  h)</span><br><span class="line">    print_usage</span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line">    ;;</span><br><span class="line">  \?)</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Invalid option: -<span class="variable">$OPTARG</span>&quot;</span> &gt;&amp;2</span><br><span class="line">    print_usage</span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line">    ;;</span><br><span class="line">  <span class="keyword">esac</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line">IFS=<span class="string">&#x27;,&#x27;</span> <span class="built_in">read</span> -ra lines &lt;&lt;&lt;<span class="string">&quot;<span class="variable">$lines_string</span>&quot;</span></span><br><span class="line"></span><br><span class="line">[[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting from file: <span class="variable">$HISTFILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Check HISTFILE exists</span></span><br><span class="line"><span class="keyword">if</span> [[ ! -f <span class="variable">$HISTFILE</span> ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;History file <span class="variable">$HISTFILE</span> does not exist&quot;</span> &gt;&amp;2</span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Check be used together</span></span><br><span class="line"><span class="keyword">if</span> [[ (<span class="variable">$&#123;#lines[@]&#125;</span> -gt 0 &amp;&amp; (-n <span class="variable">$regexp</span> || -n <span class="variable">$last_lines</span>)) || (-n <span class="variable">$regexp</span> &amp;&amp; -n <span class="variable">$last_lines</span>) ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;Options -n, -r and -e cannot be used together&quot;</span> &gt;&amp;2</span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Verify input offset</span></span><br><span class="line"><span class="keyword">if</span> [[ -n <span class="variable">$offset</span> &amp;&amp; <span class="variable">$offset</span> != 0 ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="keyword">if</span> [[ <span class="variable">$&#123;#lines[@]&#125;</span> == 0 ]]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;You must specify line number with -n when using offset with -o.&quot;</span> &gt;&amp;2</span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> [[ <span class="variable">$&#123;#lines[@]&#125;</span> -gt 1 ]]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;You specify line number with -n (limit 1) when using offset with -o.&quot;</span> &gt;&amp;2</span><br><span class="line">    <span class="built_in">exit</span> 1</span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete specified lines</span></span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$&#123;#lines[@]&#125;</span> -gt 0 ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="keyword">if</span> [[ -z <span class="variable">$offset</span> || <span class="variable">$offset</span> == 0 ]]; <span class="keyword">then</span> <span class="comment"># Delete specified lines</span></span><br><span class="line">    [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting lines: <span class="variable">$&#123;lines[*]&#125;</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Verify line exist</span></span><br><span class="line">    <span class="keyword">for</span> line <span class="keyword">in</span> <span class="string">&quot;<span class="variable">$&#123;lines[@]&#125;</span>&quot;</span>; <span class="keyword">do</span></span><br><span class="line">      <span class="keyword">if</span> [[ $(<span class="built_in">wc</span> -l &lt;<span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span>) -lt <span class="variable">$line</span> ]]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;Line <span class="variable">$line</span> does not exist&quot;</span> &gt;&amp;2</span><br><span class="line">        <span class="built_in">exit</span> 1</span><br><span class="line">      <span class="keyword">fi</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> ((index = <span class="number">0</span>; index &lt; <span class="variable">$&#123;#lines[@]&#125;</span>; index++)); <span class="keyword">do</span></span><br><span class="line">      line=$((lines[index] - index))</span><br><span class="line"></span><br><span class="line">      <span class="comment"># Debug line content</span></span><br><span class="line">      delete_line=$(sed -n <span class="string">&quot;<span class="variable">$&#123;line&#125;</span>p&quot;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span>)</span><br><span class="line">      [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting line [<span class="variable">$&#123;line&#125;</span>]: <span class="variable">$delete_line</span>&quot;</span></span><br><span class="line"></span><br><span class="line">      awk <span class="string">&#x27;NR != &#x27;</span><span class="variable">$line</span><span class="string">&#x27; &#123;print&#125;&#x27;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span> &gt;tmp &amp;&amp; <span class="built_in">mv</span> tmp <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">else</span> <span class="comment"># Delete lines in range</span></span><br><span class="line">    <span class="keyword">if</span> [[ <span class="variable">$offset</span> -gt 0 ]]; <span class="keyword">then</span></span><br><span class="line">      first=<span class="variable">$&#123;lines[0]&#125;</span></span><br><span class="line">      last=$((first + offset))</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">      first=$((lines[<span class="number">0</span>] + offset))</span><br><span class="line">      last=<span class="variable">$&#123;lines[0]&#125;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line">    [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting range: <span class="variable">$first</span> to <span class="variable">$last</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> ((i = first; i &lt;= last; i++)); <span class="keyword">do</span></span><br><span class="line">      <span class="comment"># Debug line content</span></span><br><span class="line">      delete_line=$(sed -n <span class="string">&quot;<span class="variable">$&#123;i&#125;</span>p&quot;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span>)</span><br><span class="line">      [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting line [<span class="variable">$&#123;i&#125;</span>]: <span class="variable">$delete_line</span>&quot;</span></span><br><span class="line">    <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">    awk <span class="string">&#x27;NR &lt; &#x27;</span><span class="string">&quot;<span class="variable">$first</span>&quot;</span><span class="string">&#x27; || NR &gt; &#x27;</span><span class="string">&quot;<span class="variable">$last</span>&quot;</span><span class="string">&#x27; &#123;print&#125;&#x27;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span> &gt;tmp &amp;&amp; <span class="built_in">mv</span> tmp <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span></span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line">  <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete last n lines</span></span><br><span class="line"><span class="keyword">if</span> [[ -n <span class="variable">$last_lines</span> ]]; <span class="keyword">then</span></span><br><span class="line">  [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting last <span class="variable">$last_lines</span> lines&quot;</span></span><br><span class="line"></span><br><span class="line">  total_lines=$(<span class="built_in">wc</span> -l &lt;<span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span>)</span><br><span class="line">  first=$((total_lines - last_lines))</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> ((i = first; i &lt; total_lines; i++)); <span class="keyword">do</span></span><br><span class="line">    delete_line=$(sed -n <span class="string">&quot;<span class="variable">$&#123;i&#125;</span>p&quot;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span>)</span><br><span class="line">    [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting line [<span class="variable">$&#123;i&#125;</span>]: <span class="variable">$delete_line</span>&quot;</span></span><br><span class="line">  <span class="keyword">done</span></span><br><span class="line"></span><br><span class="line">  awk <span class="string">&#x27;NR &lt; &#x27;</span><span class="string">&quot;<span class="variable">$first</span>&quot;</span><span class="string">&#x27; || NR &gt; &#x27;</span><span class="string">&quot;<span class="subst">$((total_lines-1)</span>)&quot;</span><span class="string">&#x27; &#123;print&#125;&#x27;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span> &gt;tmp &amp;&amp; <span class="built_in">mv</span> tmp <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span></span><br><span class="line">  <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete by regex</span></span><br><span class="line"><span class="keyword">if</span> [[ -n <span class="variable">$regexp</span> ]]; <span class="keyword">then</span></span><br><span class="line">  matches=$(grep -n -E <span class="string">&quot;<span class="variable">$regexp</span>&quot;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span> | <span class="built_in">cut</span> -d: -f1)</span><br><span class="line"></span><br><span class="line">  <span class="comment"># shellcheck disable=SC2086</span></span><br><span class="line">  [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting lines match &#x27;<span class="variable">$regexp</span>&#x27;:&quot;</span> <span class="variable">$matches</span></span><br><span class="line"></span><br><span class="line">  i=0</span><br><span class="line">  <span class="keyword">for</span> line_number <span class="keyword">in</span> <span class="variable">$matches</span>; <span class="keyword">do</span></span><br><span class="line">    line=$((line_number - i))</span><br><span class="line"></span><br><span class="line">    delete_line=$(sed -n <span class="string">&quot;<span class="variable">$&#123;line&#125;</span>p&quot;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span>)</span><br><span class="line">    [[ <span class="variable">$verbose</span> == <span class="literal">true</span> ]] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;Deleting line [<span class="variable">$line_number</span>]: <span class="variable">$delete_line</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    awk <span class="string">&#x27;NR != &#x27;</span><span class="variable">$line</span><span class="string">&#x27; &#123;print&#125;&#x27;</span> <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span> &gt;tmp &amp;&amp; <span class="built_in">mv</span> tmp <span class="string">&quot;<span class="variable">$HISTFILE</span>&quot;</span></span><br><span class="line"></span><br><span class="line">    i=$((i + <span class="number">1</span>))</span><br><span class="line">  <span class="keyword">done</span></span><br><span class="line">  <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Default print usage</span></span><br><span class="line"><span class="keyword">if</span> [[ <span class="variable">$#</span> -eq 0 ]]; <span class="keyword">then</span></span><br><span class="line">  print_usage</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p>This is a bash script to delete specific lines from <code>$HISTFILE</code> ( .zsh_history ) file.</p>
+<p>It provides several options to specify which lines to delete:</p>
+<ul>
+<li>-n: Delete specified line numbers</li>
+<li>-o: Delete a range of lines, used together with -n</li>
+<li>-r: Delete lines matching a regular expression pattern</li>
+<li>-e: Delete last N lines</li>
+</ul>
+<p>The script also supports:</p>
+<ul>
+<li>Specifying a different history file with -f</li>
+<li>Print verbose output with -v</li>
+<li>Print help message with -h</li>
+</ul>
+<p>The implementation uses awk to filter out target lines and redirect to a tmp file, then replace original file.</p>
+<p>Some notes on usage:</p>
+<ul>
+<li>Line numbers start from 1</li>
+<li>-n, -r and -e options cannot be used together</li>
+</ul>
+<p>This provides a flexible way to clean up .zsh_history by deleting unwanted lines.</p>
+<p>Please let me know if you would like me to modify or expand the introduction.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/shell/" rel="tag"># shell</a>
+              <a href="/tags/linux/" rel="tag"># linux</a>
+              <a href="/tags/mac/" rel="tag"># mac</a>
+          </div>
+
+        
+  <div class="social-like a2a_kit a2a_kit_size_32 a2a_default_style">
+    <a class="a2a_dd" target="_blank" rel="noopener" href="https://www.addtoany.com/share"></a>
+      <a class="a2a_button_facebook"></a>
+      <a class="a2a_button_twitter"></a>
+  </div>
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/04/19/k8s-install/" rel="prev" title="Kubernetes 集群搭建">
+                  <i class="fa fa-angle-left"></i> Kubernetes 集群搭建
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2020 – 
+    <span itemprop="copyrightYear">2023</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Ryan961</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">5k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">19 分钟</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lozad@1.16.0/dist/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script><script src="/js/bookmark.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.1/dist/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  <script src="/js/third-party/addtoany.js"></script>
+
+  
+
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ryan961","repo":"ryan961.github.io","client_id":"eda4b28f7b8d4b571106","client_secret":"06f2ba43c600d562fa10d00fd692ab4def6b2537","admin_user":["ryan961"],"distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdn.jsdelivr.net/npm/gitalk@1.8.0/dist/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"cb319c9f3f5b8230679ffd273403ed7e"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>
