@@ -17,7 +17,7 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>A bash script to delete specific lines from $HISTFILE file</title>
+    <title>Cleaning Up .zsh_history File with a Bash Script</title>
     <link href="https://ryan961.github.io/2023/08/24/history-cleaner/"/>
     <id>https://ryan961.github.io/2023/08/24/history-cleaner/</id>
     <published>2023-08-24T16:00:00.000Z</published>
@@ -81,7 +81,7 @@
   </entry>
   
   <entry>
-    <title>tableflip + systemd 实现 Go 应用热重启</title>
+    <title>Tableflip + Systemd 实现 Go 应用热重启</title>
     <link href="https://ryan961.github.io/2022/03/23/go-graceful-upgrades/"/>
     <id>https://ryan961.github.io/2022/03/23/go-graceful-upgrades/</id>
     <published>2022-03-23T16:00:00.000Z</published>

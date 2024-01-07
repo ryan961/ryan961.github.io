@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>tableflip + systemd 实现 Go 应用热重启</title>
+    <title>Tableflip + Systemd 实现 Go 应用热重启</title>
     <url>/2022/03/23/go-graceful-upgrades/</url>
     <content><![CDATA[<p>对于一个常驻、高访问量的网络服务来说，在进行代码变更需要对进程进行升级&#x2F;重启时，如何避免对正在通信的用户以及即将访问的用户造成影响便是一个难以忽视的问题，尤其是在用户量达到一定规模的时候。</p>
 <p>本文将使用 <a href="https://github.com/cloudflare/tableflip">tableflip</a>并结合 <a href="https://github.com/cloudflare/tableflip#integration-with-systemd">systemd</a> 实现 Go 应用优雅的热重启。</p>
@@ -72,7 +72,7 @@
       </tags>
   </entry>
   <entry>
-    <title>A bash script to delete specific lines from $HISTFILE file</title>
+    <title>Cleaning Up .zsh_history File with a Bash Script</title>
     <url>/2023/08/24/history-cleaner/</url>
     <content><![CDATA[<h1 id="history-cleaner-sh"><a href="#history-cleaner-sh" class="headerlink" title="history_cleaner.sh"></a>history_cleaner.sh</h1><blockquote>
 <p><a href="https://gist.github.com/ryan961/2baff64d162a946158405bb59bde1358">https://gist.github.com/ryan961/2baff64d162a946158405bb59bde1358</a></p>
