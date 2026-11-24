@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="rgba(0,0,0,0)"><meta name="generator" content="Hexo 6.3.0">
-<link rel="preconnect" href="//fonts.loli.net" crossorigin>
+<meta name="theme-color" content="rgba(0,0,0,0)"><meta name="generator" content="Hexo 8.1.2">
+  <link rel="preload" href="/css/main.css" as="style">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
@@ -14,17 +15,16 @@
 
 <link rel="stylesheet" href="/css/main.css">
 
-<link rel="stylesheet" href="//fonts.loli.net/css?family=Roboto+Slab:300,300italic,400,400italic,700,700italic%7CInconsolata:300,300italic,400,400italic,700,700italic%7CInconsolata-dz+for+Powerline:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" integrity="sha256-HtsXJanqjKTc8vVQjO4YMhiqFoXkfBsjBWcX91T1jr8=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"ryan961.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.18.1","exturl":false,"sidebar":{"position":"left","display":"always","padding":18,"offset":12},"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":"disqus","storage":true,"lazyload":false,"nav":{"disqus":{"text":"Load Disqus","order":-1}},"activeClass":"disqus"},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/css/all.min.css" integrity="sha256-4Lad8m4ZWW1Lgb9+sMVLYEfnIh7BjV1NQMEe79Pviks=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ryan961.github.io","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.29.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"always","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"base16/google-light","dark":"base16/google-dark"},"prism":{"light":"prism-vs","dark":"prism-darcula"},"copy_button":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"language":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"buttons","active":"disqus","storage":true,"lazyload":false,"nav":{"disqus":{"text":"Load Disqus","order":-1}},"activeClass":"disqus"},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="本文基于官方文档，并借鉴了大量讨论 slice 的文章来综述 slice 的底层结构和使用方法。你可以在文末找到这些文章的链接，欢迎阅读。  介绍Go 的切片类型提供了一种处理类型化数据序列的便捷高效的方法。切片类似于其他语言中的数组，但具有一些不寻常的属性。 Arrays切片类型是建立在 Go 数组类型之上的抽象，但它在日常编程中的使用并不多，此处仅作简单介绍。  数组类型定义指定长度和元素类">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Go Slices: internals and usage">
-<meta property="og:url" content="https://ryan961.github.io/2024/01/19/go-slice/index.html">
+<meta property="og:url" content="https://ryan961.github.io/2024/01/20/go-slice/index.html">
 <meta property="og:site_name" content="Ryan961&#39;s Studio">
 <meta property="og:description" content="本文基于官方文档，并借鉴了大量讨论 slice 的文章来综述 slice 的底层结构和使用方法。你可以在文末找到这些文章的链接，欢迎阅读。  介绍Go 的切片类型提供了一种处理类型化数据序列的便捷高效的方法。切片类似于其他语言中的数组，但具有一些不寻常的属性。 Arrays切片类型是建立在 Go 数组类型之上的抽象，但它在日常编程中的使用并不多，此处仅作简单介绍。  数组类型定义指定长度和元素类">
 <meta property="og:locale" content="zh_CN">
@@ -38,17 +38,16 @@
 <meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/screenshot-20240121-190658.png">
 
 
-<link rel="canonical" href="https://ryan961.github.io/2024/01/19/go-slice/">
+<link rel="canonical" href="https://ryan961.github.io/2024/01/20/go-slice/">
 
 
-
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryan961.github.io/2024/01/19/go-slice/","path":"2024/01/19/go-slice/","title":"Go Slices: internals and usage"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ryan961.github.io/2024/01/20/go-slice/","path":"2024/01/20/go-slice/","title":"Go Slices: internals and usage"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
 <title>Go Slices: internals and usage | Ryan961's Studio</title>
   
-  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-221007963-1","only_pageview":true}</script>
-  <script src="/js/third-party/analytics/google-analytics.js"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"UA-221007963-1","only_pageview":true,"measure_protocol_api_secret":null}</script>
+  <script src="/js/third-party/analytics/google-analytics.js" defer></script>
 
 
 
@@ -56,6 +55,27 @@
 
 
 
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.5.0/dist/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+
+
+  <script src="/js/third-party/addtoany.js" defer></script>
+
+  
+
+
+
+
+
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Inconsolata:wght@300;400;700&amp;family=Roboto+Slab:wght@300;400;700&amp;display=swap">
 
   <noscript>
     <link rel="stylesheet" href="/css/noscript.css">
@@ -63,18 +83,14 @@
 <link rel="alternate" href="/atom.xml" title="Ryan961's Studio" type="application/atom+xml">
 </head>
 
-<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+<body itemscope itemtype="http://schema.org/WebPage">
   <div class="headband"></div>
 
   <main class="main">
     <div class="column">
       <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
-  <div class="site-nav-toggle">
-    <div class="toggle" aria-label="切换导航栏" role="button">
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
-        <span class="toggle-line"></span>
-    </div>
+  <div class="site-nav-search popup-trigger" aria-label="搜索" role="button">
+      <i class="fa fa-search fa-fw fa-lg"></i>
   </div>
 
   <div class="site-meta">
@@ -86,10 +102,8 @@
     </a>
   </div>
 
-  <div class="site-nav-right">
-    <div class="toggle popup-trigger" aria-label="搜索" role="button">
-        <i class="fa fa-search fa-fw fa-lg"></i>
-    </div>
+  <div class="site-nav-toggle" aria-label="切换导航栏" role="button">
+      <i class="fa fa-ellipsis fa-fw fa-lg"></i>
   </div>
 </div>
 
@@ -106,28 +120,29 @@
 
 
 
-  <div class="search-pop-overlay">
-    <div class="popup search-popup"><div class="search-header">
-  <span class="search-icon">
-    <i class="fa fa-search"></i>
-  </span>
-  <div class="search-input-container">
-    <input autocomplete="off" autocapitalize="off" maxlength="80"
-           placeholder="搜索..." spellcheck="false"
-           type="search" class="search-input">
-  </div>
-  <span class="popup-btn-close" role="button">
-    <i class="fa fa-times-circle"></i>
-  </span>
-</div>
-<div class="search-result-container no-result">
-  <div class="search-result-icon">
-    <i class="fa fa-spinner fa-pulse fa-5x"></i>
-  </div>
-</div>
-
+  
+  <template id="search-popup-template"><div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
     </div>
-  </div>
+  </div></template>
 
 </header>
         
@@ -214,7 +229,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ryan961.github.io/2024/01/19/go-slice/">
+    <link itemprop="mainEntityOfPage" href="https://ryan961.github.io/2024/01/20/go-slice/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.png">
@@ -264,15 +279,15 @@
       </span>
       <span class="post-meta-item-text">Disqus：</span>
     
-    <a title="disqus" href="/2024/01/19/go-slice/#disqus_thread" itemprop="discussionUrl">
-      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2024/01/19/go-slice/" itemprop="commentCount"></span>
+    <a title="disqus" href="/2024/01/20/go-slice/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2024/01/20/go-slice/" itemprop="commentCount"></span>
     </a>
   </span>
   
   
     <span class="post-meta-item" title="本文字数">
       <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
+        <i class="far fa-file-lines"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
       <span>3.8k</span>
@@ -327,7 +342,7 @@
 <h2 id="append-元素-扩容机制"><a href="#append-元素-扩容机制" class="headerlink" title="append 元素(扩容机制)"></a>append 元素(扩容机制)</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">sliceA := []<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;</span><br><span class="line">sliceB := <span class="built_in">append</span>(sliceA, <span class="number">4</span>)</span><br><span class="line">sliceC := <span class="built_in">append</span>(sliceB, <span class="number">5</span>)</span><br><span class="line">sliceC[<span class="number">0</span>] = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">fmt.Println(*(*slice)(unsafe.Pointer(&amp;sliceA)), sliceA) <span class="comment">// prints &#123;0xc00009a000 3 3&#125; [1 2 3]</span></span><br><span class="line">fmt.Println(*(*slice)(unsafe.Pointer(&amp;sliceB)), sliceB) <span class="comment">// prints &#123;0xc00009c000 4 6&#125; [0 2 3 4]</span></span><br><span class="line">fmt.Println(*(*slice)(unsafe.Pointer(&amp;sliceC)), sliceC) <span class="comment">// prints &#123;0xc00009c000 5 6&#125; [0 2 3 4 5]</span></span><br><span class="line"></span><br><span class="line">sliceD := <span class="built_in">append</span>([]<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>&#125;, <span class="number">3</span>)</span><br><span class="line">sliceE := <span class="built_in">append</span>(sliceD, <span class="number">4</span>)</span><br><span class="line">sliceF := <span class="built_in">append</span>(sliceD, <span class="number">5</span>)</span><br><span class="line">sliceF[<span class="number">0</span>] = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">fmt.Println(*(*slice)(unsafe.Pointer(&amp;sliceD)), sliceD) <span class="comment">// prints &#123;0xc0000aa020 3 4&#125; [0 2 3]</span></span><br><span class="line">fmt.Println(*(*slice)(unsafe.Pointer(&amp;sliceE)), sliceE) <span class="comment">// prints &#123;0xc0000aa020 4 4&#125; [0 2 3 5]</span></span><br><span class="line">fmt.Println(*(*slice)(unsafe.Pointer(&amp;sliceF)), sliceF) <span class="comment">// prints &#123;0xc0000aa020 4 4&#125; [0 2 3 5]</span></span><br></pre></td></tr></table></figure>
 
 <p><a target="_blank" rel="noopener" href="https://go.dev/play/p/aM7wIBbQmBr">(Try it yourself)</a></p>
-<h3 id="append-的两种场景"><a href="#append-的两种场景" class="headerlink" title="append 的两种场景"></a>append 的两种场景</h3><p><img data-src="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/screenshot-20240121-190658.png" alt="screenshot-20240121-190658"></p>
+<h3 id="append-的两种场景"><a href="#append-的两种场景" class="headerlink" title="append 的两种场景"></a>append 的两种场景</h3><p><img src="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/screenshot-20240121-190658.png" alt="screenshot-20240121-190658" loading="lazy"></p>
 <ul>
 <li>当 append 之后的长度小于等于 cap，将会直接利用原底层数组剩余的空间。</li>
 <li>当 append 后的长度大于 cap 时，则会分配一块更大的区域来容纳新的底层数组。</li>
@@ -335,7 +350,7 @@
 <p><strong>因此，为了避免内存发生拷贝，如果能够知道最终的切片的大小，预先设置 cap 的值能够获得更好的性能。</strong></p>
 <h3 id="growslice-切片扩容"><a href="#growslice-切片扩容" class="headerlink" title="growslice 切片扩容"></a><a target="_blank" rel="noopener" href="https://github.com/golang/go/blob/f19f31f2e7c136a8dae03cbfe4f8ebbb8b54569b/src/runtime/slice.go#L155">growslice</a> 切片扩容</h3><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// growslice allocates new backing store for a slice.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// arguments:</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//	oldPtr = pointer to the slice&#x27;s backing array</span></span><br><span class="line"><span class="comment">//	newLen = new length (= oldLen + num)</span></span><br><span class="line"><span class="comment">//	oldCap = original slice&#x27;s capacity.</span></span><br><span class="line"><span class="comment">//	   num = number of elements being added</span></span><br><span class="line"><span class="comment">//	    et = element type</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// return values:</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//	newPtr = pointer to the new backing store</span></span><br><span class="line"><span class="comment">//	newLen = same value as the argument</span></span><br><span class="line"><span class="comment">//	newCap = capacity of the new backing store</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// Requires that uint(newLen) &gt; uint(oldCap).</span></span><br><span class="line"><span class="comment">// Assumes the original slice length is newLen - num</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// A new backing store is allocated with space for at least newLen elements.</span></span><br><span class="line"><span class="comment">// Existing entries [0, oldLen) are copied over to the new backing store.</span></span><br><span class="line"><span class="comment">// Added entries [oldLen, newLen) are not initialized by growslice</span></span><br><span class="line"><span class="comment">// (although for pointer-containing element types, they are zeroed). They</span></span><br><span class="line"><span class="comment">// must be initialized by the caller.</span></span><br><span class="line"><span class="comment">// Trailing entries [newLen, newCap) are zeroed.</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// growslice&#x27;s odd calling convention makes the generated code that calls</span></span><br><span class="line"><span class="comment">// this function simpler. In particular, it accepts and returns the</span></span><br><span class="line"><span class="comment">// new length so that the old length is not live (does not need to be</span></span><br><span class="line"><span class="comment">// spilled/restored) and the new length is returned (also does not need</span></span><br><span class="line"><span class="comment">// to be spilled/restored).</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">growslice</span><span class="params">(oldPtr unsafe.Pointer, newLen, oldCap, num <span class="type">int</span>, et *_type)</span></span> slice &#123;</span><br><span class="line">	oldLen := newLen - num</span><br><span class="line">	<span class="keyword">if</span> raceenabled &#123;</span><br><span class="line">		callerpc := getcallerpc()</span><br><span class="line">		racereadrangepc(oldPtr, <span class="type">uintptr</span>(oldLen*<span class="type">int</span>(et.Size_)), callerpc, abi.FuncPCABIInternal(growslice))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> msanenabled &#123;</span><br><span class="line">		msanread(oldPtr, <span class="type">uintptr</span>(oldLen*<span class="type">int</span>(et.Size_)))</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> asanenabled &#123;</span><br><span class="line">		asanread(oldPtr, <span class="type">uintptr</span>(oldLen*<span class="type">int</span>(et.Size_)))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> newLen &lt; <span class="number">0</span> &#123;</span><br><span class="line">		<span class="built_in">panic</span>(errorString(<span class="string">&quot;growslice: len out of range&quot;</span>))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> et.Size_ == <span class="number">0</span> &#123;</span><br><span class="line">		<span class="comment">// append should not create a slice with nil pointer but non-zero len.</span></span><br><span class="line">		<span class="comment">// We assume that append doesn&#x27;t need to preserve oldPtr in this case.</span></span><br><span class="line">		<span class="keyword">return</span> slice&#123;unsafe.Pointer(&amp;zerobase), newLen, newLen&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	newcap := nextslicecap(newLen, oldCap)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> overflow <span class="type">bool</span></span><br><span class="line">	<span class="keyword">var</span> lenmem, newlenmem, capmem <span class="type">uintptr</span></span><br><span class="line">	<span class="comment">// Specialize for common values of et.Size.</span></span><br><span class="line">	<span class="comment">// For 1 we don&#x27;t need any division/multiplication.</span></span><br><span class="line">	<span class="comment">// For goarch.PtrSize, compiler will optimize division/multiplication into a shift by a constant.</span></span><br><span class="line">	<span class="comment">// For powers of 2, use a variable shift.</span></span><br><span class="line">	noscan := et.PtrBytes == <span class="number">0</span></span><br><span class="line">	<span class="keyword">switch</span> &#123;</span><br><span class="line">	<span class="keyword">case</span> et.Size_ == <span class="number">1</span>:</span><br><span class="line">		lenmem = <span class="type">uintptr</span>(oldLen)</span><br><span class="line">		newlenmem = <span class="type">uintptr</span>(newLen)</span><br><span class="line">		capmem = roundupsize(<span class="type">uintptr</span>(newcap), noscan)</span><br><span class="line">		overflow = <span class="type">uintptr</span>(newcap) &gt; maxAlloc</span><br><span class="line">		newcap = <span class="type">int</span>(capmem)</span><br><span class="line">	<span class="keyword">case</span> et.Size_ == goarch.PtrSize:</span><br><span class="line">		lenmem = <span class="type">uintptr</span>(oldLen) * goarch.PtrSize</span><br><span class="line">		newlenmem = <span class="type">uintptr</span>(newLen) * goarch.PtrSize</span><br><span class="line">		capmem = roundupsize(<span class="type">uintptr</span>(newcap)*goarch.PtrSize, noscan)</span><br><span class="line">		overflow = <span class="type">uintptr</span>(newcap) &gt; maxAlloc/goarch.PtrSize</span><br><span class="line">		newcap = <span class="type">int</span>(capmem / goarch.PtrSize)</span><br><span class="line">	<span class="keyword">case</span> isPowerOfTwo(et.Size_):</span><br><span class="line">		<span class="keyword">var</span> shift <span class="type">uintptr</span></span><br><span class="line">		<span class="keyword">if</span> goarch.PtrSize == <span class="number">8</span> &#123;</span><br><span class="line">			<span class="comment">// Mask shift for better code generation.</span></span><br><span class="line">			shift = <span class="type">uintptr</span>(sys.TrailingZeros64(<span class="type">uint64</span>(et.Size_))) &amp; <span class="number">63</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			shift = <span class="type">uintptr</span>(sys.TrailingZeros32(<span class="type">uint32</span>(et.Size_))) &amp; <span class="number">31</span></span><br><span class="line">		&#125;</span><br><span class="line">		lenmem = <span class="type">uintptr</span>(oldLen) &lt;&lt; shift</span><br><span class="line">		newlenmem = <span class="type">uintptr</span>(newLen) &lt;&lt; shift</span><br><span class="line">		capmem = roundupsize(<span class="type">uintptr</span>(newcap)&lt;&lt;shift, noscan)</span><br><span class="line">		overflow = <span class="type">uintptr</span>(newcap) &gt; (maxAlloc &gt;&gt; shift)</span><br><span class="line">		newcap = <span class="type">int</span>(capmem &gt;&gt; shift)</span><br><span class="line">		capmem = <span class="type">uintptr</span>(newcap) &lt;&lt; shift</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		lenmem = <span class="type">uintptr</span>(oldLen) * et.Size_</span><br><span class="line">		newlenmem = <span class="type">uintptr</span>(newLen) * et.Size_</span><br><span class="line">		capmem, overflow = math.MulUintptr(et.Size_, <span class="type">uintptr</span>(newcap))</span><br><span class="line">		capmem = roundupsize(capmem, noscan)</span><br><span class="line">		newcap = <span class="type">int</span>(capmem / et.Size_)</span><br><span class="line">		capmem = <span class="type">uintptr</span>(newcap) * et.Size_</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// The check of overflow in addition to capmem &gt; maxAlloc is needed</span></span><br><span class="line">	<span class="comment">// to prevent an overflow which can be used to trigger a segfault</span></span><br><span class="line">	<span class="comment">// on 32bit architectures with this example program:</span></span><br><span class="line">	<span class="comment">//</span></span><br><span class="line">	<span class="comment">// type T [1&lt;&lt;27 + 1]int64</span></span><br><span class="line">	<span class="comment">//</span></span><br><span class="line">	<span class="comment">// var d T</span></span><br><span class="line">	<span class="comment">// var s []T</span></span><br><span class="line">	<span class="comment">//</span></span><br><span class="line">	<span class="comment">// func main() &#123;</span></span><br><span class="line">	<span class="comment">//   s = append(s, d, d, d, d)</span></span><br><span class="line">	<span class="comment">//   print(len(s), &quot;\n&quot;)</span></span><br><span class="line">	<span class="comment">// &#125;</span></span><br><span class="line">	<span class="keyword">if</span> overflow || capmem &gt; maxAlloc &#123;</span><br><span class="line">		<span class="built_in">panic</span>(errorString(<span class="string">&quot;growslice: len out of range&quot;</span>))</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">var</span> p unsafe.Pointer</span><br><span class="line">	<span class="keyword">if</span> et.PtrBytes == <span class="number">0</span> &#123;</span><br><span class="line">		p = mallocgc(capmem, <span class="literal">nil</span>, <span class="literal">false</span>)</span><br><span class="line">		<span class="comment">// The append() that calls growslice is going to overwrite from oldLen to newLen.</span></span><br><span class="line">		<span class="comment">// Only clear the part that will not be overwritten.</span></span><br><span class="line">		<span class="comment">// The reflect_growslice() that calls growslice will manually clear</span></span><br><span class="line">		<span class="comment">// the region not cleared here.</span></span><br><span class="line">		memclrNoHeapPointers(add(p, newlenmem), capmem-newlenmem)</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">// Note: can&#x27;t use rawmem (which avoids zeroing of memory), because then GC can scan uninitialized memory.</span></span><br><span class="line">		p = mallocgc(capmem, et, <span class="literal">true</span>)</span><br><span class="line">		<span class="keyword">if</span> lenmem &gt; <span class="number">0</span> &amp;&amp; writeBarrier.enabled &#123;</span><br><span class="line">			<span class="comment">// Only shade the pointers in oldPtr since we know the destination slice p</span></span><br><span class="line">			<span class="comment">// only contains nil pointers because it has been cleared during alloc.</span></span><br><span class="line">			<span class="comment">//</span></span><br><span class="line">			<span class="comment">// It&#x27;s safe to pass a type to this function as an optimization because</span></span><br><span class="line">			<span class="comment">// from and to only ever refer to memory representing whole values of</span></span><br><span class="line">			<span class="comment">// type et. See the comment on bulkBarrierPreWrite.</span></span><br><span class="line">			bulkBarrierPreWriteSrcOnly(<span class="type">uintptr</span>(p), <span class="type">uintptr</span>(oldPtr), lenmem-et.Size_+et.PtrBytes, et)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	memmove(p, oldPtr, lenmem)</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> slice&#123;p, newLen, newcap&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// nextslicecap computes the next appropriate slice length.</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">nextslicecap</span><span class="params">(newLen, oldCap <span class="type">int</span>)</span></span> <span class="type">int</span> &#123;</span><br><span class="line">	newcap := oldCap</span><br><span class="line">	doublecap := newcap + newcap</span><br><span class="line">	<span class="keyword">if</span> newLen &gt; doublecap &#123;</span><br><span class="line">		<span class="keyword">return</span> newLen</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">const</span> threshold = <span class="number">256</span></span><br><span class="line">	<span class="keyword">if</span> oldCap &lt; threshold &#123;</span><br><span class="line">		<span class="keyword">return</span> doublecap</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">for</span> &#123;</span><br><span class="line">		<span class="comment">// Transition from growing 2x for small slices</span></span><br><span class="line">		<span class="comment">// to growing 1.25x for large slices. This formula</span></span><br><span class="line">		<span class="comment">// gives a smooth-ish transition between the two.</span></span><br><span class="line">		newcap += (newcap + <span class="number">3</span>*threshold) &gt;&gt; <span class="number">2</span></span><br><span class="line"></span><br><span class="line">		<span class="comment">// We need to check `newcap &gt;= newLen` and whether `newcap` overflowed.</span></span><br><span class="line">		<span class="comment">// newLen is guaranteed to be larger than zero, hence</span></span><br><span class="line">		<span class="comment">// when newcap overflows then `uint(newcap) &gt; uint(newLen)`.</span></span><br><span class="line">		<span class="comment">// This allows to check for both with the same comparison.</span></span><br><span class="line">		<span class="keyword">if</span> <span class="type">uint</span>(newcap) &gt;= <span class="type">uint</span>(newLen) &#123;</span><br><span class="line">			<span class="keyword">break</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Set newcap to the requested cap when</span></span><br><span class="line">	<span class="comment">// the newcap calculation overflowed.</span></span><br><span class="line">	<span class="keyword">if</span> newcap &lt;= <span class="number">0</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> newLen</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> newcap</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img data-src="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/20240121220913.png" alt="20240121220913"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/ryan961/img-floder/blog/20240121220913.png" alt="20240121220913" loading="lazy"></p>
 <p>slice 扩容过程的简化流程:</p>
 <ol>
 <li>检查新长度 newLen 是否超过旧 slice 的容量 oldCap，如果新长度 newLen 小于 0，则抛出错误。</li>
@@ -401,7 +416,7 @@
 </blockquote>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> gopherRegexp = regexp.MustCompile(<span class="string">&quot;gopher&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 泄漏场景</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">FindGopher</span><span class="params">(filename <span class="type">string</span>)</span></span> []<span class="type">byte</span> &#123;</span><br><span class="line">    <span class="comment">// 读取大文件  1,000,000,000 bytes (1GB)</span></span><br><span class="line">    b, _ := ioutil.ReadFile(filename)</span><br><span class="line">    <span class="comment">// 只取一个 6 字节的子切片</span></span><br><span class="line">    gopherSlice := <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="built_in">len</span>(<span class="string">&quot;gopher&quot;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 深度拷贝</span></span><br><span class="line">    <span class="built_in">copy</span>(gopherSlice, gopherRegexp.Find(b...)</span><br><span class="line">    <span class="keyword">return</span> gopherSlice</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正确场景</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">FindGopher</span><span class="params">(filename <span class="type">string</span>)</span></span> []<span class="type">byte</span> &#123;</span><br><span class="line">    <span class="comment">// 读取大文件  1,000,000,000 bytes (1GB)</span></span><br><span class="line">    b, _ := ioutil.ReadFile(filename)</span><br><span class="line">    <span class="comment">// 只取一个 6 字节的子切片</span></span><br><span class="line">    gopherSlice := <span class="built_in">make</span>([]<span class="type">byte</span>, <span class="built_in">len</span>(<span class="string">&quot;gopher&quot;</span>))</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 深度拷贝</span></span><br><span class="line">    <span class="built_in">copy</span>(gopherSlice, gopherRegexp.Find(b...)</span><br><span class="line">    <span class="keyword">return</span> gopherSlice</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="for-i-0-i-len-slice-i-迭代，避免-range-值拷贝开销"><a href="#for-i-0-i-len-slice-i-迭代，避免-range-值拷贝开销" class="headerlink" title="for i := 0; i &lt; len(slice); i++ { ... } 迭代，避免 range 值拷贝开销"></a><code>for i := 0; i &lt; len(slice); i++ &#123; ... &#125;</code> 迭代，避免 <code>range</code> 值拷贝开销</h2><blockquote>
+<h2 id="for-i-0-i-len-slice-i-迭代，避免-range-值拷贝开销"><a href="#for-i-0-i-len-slice-i-迭代，避免-range-值拷贝开销" class="headerlink" title="for i := 0; i &lt; len(slice); i++ { ... } 迭代，避免 range 值拷贝开销"></a><code>for i := 0; i &lt; len(slice); i++ { ... }</code> 迭代，避免 <code>range</code> 值拷贝开销</h2><blockquote>
 <ul>
 <li><a target="_blank" rel="noopener" href="https://www.calhoun.io/does-range-copy-the-slice-in-go/">Does Go’s range Copy a Slice Before Iterating Over It?</a></li>
 <li><a target="_blank" rel="noopener" href="https://geektutu.com/post/hpg-range.html">for 和 range 的性能比较</a></li>
@@ -455,7 +470,7 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2024/01/05/elasticsearch-notes/" rel="prev" title="Elasticsearch Notes">
+                <a href="/2024/01/06/elasticsearch-notes/" rel="prev" title="Elasticsearch Notes">
                   <i class="fa fa-angle-left"></i> Elasticsearch Notes
                 </a>
             </div>
@@ -484,7 +499,7 @@
 
   <div class="copyright">
     &copy; 2020 – 
-    <span itemprop="copyrightYear">2025</span>
+    <span itemprop="copyrightYear">2026</span>
     <span class="with-love">
       <i class="fa fa-heart"></i>
     </span>
@@ -513,6 +528,11 @@
   </footer>
 
   
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
   <div class="back-to-top" role="button" aria-label="返回顶部">
     <i class="fa fa-arrow-up fa-lg"></i>
     <span>0%</span>
@@ -522,30 +542,8 @@
 <noscript>
   <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
-
-
-  
-  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lozad@1.16.0/dist/lozad.min.js" integrity="sha256-mOFREFhqmHeQbXpK2lp4nA3qooVgACfh88fpJftLBbc=" crossorigin="anonymous"></script>
-<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/hexo-generator-searchdb@1.4.1/dist/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
-<script src="/js/third-party/search/local-search.js"></script>
-
-
-
-
-
-
-  <script src="/js/third-party/addtoany.js"></script>
-
-  
-
-
-
-
 <script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"ryan961","count":true,"i18n":{"disqus":"disqus"}}</script>
-<script src="/js/third-party/comments/disqus.js"></script>
+<script src="/js/third-party/comments/disqus.js" defer></script>
 
 </body>
 </html>

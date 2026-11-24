@@ -4,7 +4,7 @@
   <url>
     <loc>https://ryan961.github.io/tags.html</loc>
     
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -13,7 +13,7 @@
   <url>
     <loc>https://ryan961.github.io/images/manifest.json</loc>
     
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -22,14 +22,14 @@
   <url>
     <loc>https://ryan961.github.io/categories.html</loc>
     
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://ryan961.github.io/2024/01/19/go-slice/</loc>
+    <loc>https://ryan961.github.io/2024/01/20/go-slice/</loc>
     
     <lastmod>2024-01-19</lastmod>
     
@@ -38,7 +38,7 @@
   </url>
   
   <url>
-    <loc>https://ryan961.github.io/2022/03/19/my-mac-tools/</loc>
+    <loc>https://ryan961.github.io/2022/03/20/my-mac-tools/</loc>
     
     <lastmod>2024-01-06</lastmod>
     
@@ -47,7 +47,7 @@
   </url>
   
   <url>
-    <loc>https://ryan961.github.io/2024/01/05/elasticsearch-notes/</loc>
+    <loc>https://ryan961.github.io/2024/01/06/elasticsearch-notes/</loc>
     
     <lastmod>2024-01-05</lastmod>
     
@@ -56,7 +56,7 @@
   </url>
   
   <url>
-    <loc>https://ryan961.github.io/2023/08/24/history-cleaner/</loc>
+    <loc>https://ryan961.github.io/2023/08/25/history-cleaner/</loc>
     
     <lastmod>2023-08-24</lastmod>
     
@@ -65,7 +65,7 @@
   </url>
   
   <url>
-    <loc>https://ryan961.github.io/2022/04/19/k8s-install/</loc>
+    <loc>https://ryan961.github.io/2022/04/20/k8s-install/</loc>
     
     <lastmod>2022-04-19</lastmod>
     
@@ -74,7 +74,7 @@
   </url>
   
   <url>
-    <loc>https://ryan961.github.io/2022/03/23/go-graceful-upgrades/</loc>
+    <loc>https://ryan961.github.io/2022/03/24/go-graceful-upgrades/</loc>
     
     <lastmod>2022-03-23</lastmod>
     
@@ -85,7 +85,7 @@
 
   <url>
     <loc>https://ryan961.github.io/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -93,70 +93,70 @@
   
   <url>
     <loc>https://ryan961.github.io/tags/golang/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/elasticsearch/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/reload/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/systemd/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/shell/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/linux/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/mac/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/kubenetes/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/ubuntu/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/tags/tools/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -165,35 +165,35 @@
   
   <url>
     <loc>https://ryan961.github.io/categories/golang/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/categories/shell/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/categories/golang/elasticsearch/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/categories/kubenetes/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://ryan961.github.io/categories/mac-tools/</loc>
-    <lastmod>2025-02-23</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
